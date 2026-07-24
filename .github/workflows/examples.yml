@@ -13,6 +13,7 @@ jobs:
         os: [windows-latest]
         example:
           - "examples/omen-alpha-blink"
+          - "examples/omen-alpha-blink-asm"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

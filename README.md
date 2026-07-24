@@ -28,6 +28,9 @@ framework = baremetal
   layouts:
   * `omen_alpha_ram` — the whole image runs from RAM at `0x8000` (volatile).
   * `omen_alpha_eeprom` — code/rodata in EEPROM (`0x2000+`), data/bss in RAM.
+* [`examples/omen-alpha-blink-asm`](examples/omen-alpha-blink-asm) — the same
+  LED blink written in pure 8085 assembly (`src/blink.S`), with no C runtime:
+  the source is its own startup. Built as a single EEPROM+RAM image.
 
 ## Boards
 
