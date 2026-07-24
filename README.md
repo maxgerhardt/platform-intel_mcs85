@@ -1,5 +1,7 @@
 # Intel MCS-85 (8085): development platform for [PlatformIO](https://platformio.org)
 
+[![Examples](https://github.com/maxgerhardt/platform-intel_mcs85/actions/workflows/examples.yml/badge.svg)](https://github.com/maxgerhardt/platform-intel_mcs85/actions/workflows/examples.yml)
+
 The Intel MCS-85 is the microprocessor family built around the **Intel 8085**,
 an 8-bit CISC CPU introduced in 1976. This platform compiles C (and assembly)
 for the 8085 using an **LLVM/Clang** toolchain with a native 8085 backend, and
