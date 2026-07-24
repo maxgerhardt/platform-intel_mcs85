@@ -1,0 +1,31 @@
+name: Examples
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    # Windows only: the LLVM 8085 toolchain package is currently built for
+    # Windows (windows_amd64) only. Add other OSes here once their toolchain
+    # packages are published.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        example:
+          - "examples/omen-alpha-blink"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install PlatformIO
+        run: |
+          python -m pip install -U https://github.com/platformio/platformio/archive/develop.zip
+      - name: Install this platform (from checkout)
+        run: |
+          pio pkg install --global --platform symlink://.
+      - name: Build example (all environments)
+        run: |
+          pio run -d ${{ matrix.example }}

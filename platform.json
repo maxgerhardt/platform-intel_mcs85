@@ -1,0 +1,43 @@
+{
+  "name": "intel_mcs85",
+  "title": "Intel MCS-85 (8085)",
+  "description": "The Intel MCS-85 is the microprocessor family built around the Intel 8085, an 8-bit CISC CPU introduced in 1976. This platform targets the 8085 with an LLVM/Clang toolchain and supports baremetal development, with an OMEN ALPHA homebrew-computer board definition.",
+  "homepage": "https://en.wikipedia.org/wiki/Intel_8085",
+  "license": "Apache-2.0",
+  "keywords": [
+    "dev-platform",
+    "Intel",
+    "MCS-85",
+    "8085",
+    "i8085",
+    "CISC",
+    "OMEN ALPHA"
+  ],
+  "engines": {
+    "platformio": "^6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maxgerhardt/platform-intel_mcs85.git"
+  },
+  "version": "0.1.0",
+  "frameworks": {
+    "baremetal": {
+      "script": "builder/frameworks/_bare.py",
+      "description": "Baremetal environment (no framework) for Intel 8085 microcontrollers",
+      "title": "Baremetal"
+    }
+  },
+  "packages": {
+    "toolchain-llvm-i8085": {
+      "type": "toolchain",
+      "optional": false,
+      "version": "https://github.com/maxgerhardt/toolchain-llvm-i8085.git"
+    },
+    "tool-hexload": {
+      "type": "uploader",
+      "optional": true,
+      "version": "https://github.com/maxgerhardt/tool-hexload.git"
+    }
+  }
+}
