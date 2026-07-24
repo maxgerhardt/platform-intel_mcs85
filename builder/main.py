@@ -21,22 +21,23 @@ env = DefaultEnvironment()
 platform = env.PioPlatform()
 board = env.BoardConfig()
 
-toolchain_dir = platform.get_package_dir("toolchain-llvm-i8085") or ""
-tc_bin = join(toolchain_dir, "bin")
-
+# The toolchain package's bin/ directory is prepended to $PATH by PlatformIO
+# (pioplatform.py) when the package is installed, so the tools resolve by bare
+# name -- no need to join absolute paths here. Sysroot include/lib paths, which
+# are not on $PATH, are still referenced explicitly in frameworks/_bare.py.
 env.Replace(
-    AR=join(tc_bin, "llvm-ar"),
-    AS=join(tc_bin, "clang"),
-    CC=join(tc_bin, "clang"),
-    CXX=join(tc_bin, "clang"),
+    AR="llvm-ar",
+    AS="clang",
+    CC="clang",
+    CXX="clang",
     # Link through the clang driver (it invokes ld.lld via -fuse-ld=lld). This
     # keeps the standard PlatformIO link command; linker options are passed with
     # the -Wl, prefix from the framework script.
     LINK="$CC",
-    OBJCOPY=join(tc_bin, "llvm-objcopy"),
-    OBJDUMP=join(tc_bin, "llvm-objdump"),
-    RANLIB=join(tc_bin, "llvm-ranlib"),
-    SIZETOOL=join(tc_bin, "llvm-size"),
+    OBJCOPY="llvm-objcopy",
+    OBJDUMP="llvm-objdump",
+    RANLIB="llvm-ranlib",
+    SIZETOOL="llvm-size",
     ARFLAGS=["rc"],
     # llvm-size -A (sysv) prints one line per section: "<name> <size> <addr>".
     # Program (EEPROM/flash) = code + read-only + the .data load image.
