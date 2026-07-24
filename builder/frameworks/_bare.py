@@ -34,7 +34,8 @@ undoc = str(board.get("build.undocumented_insns", "no")).lower() in (
     "on",
 )
 target = "i8085-unknown-elf" + ("+undoc" if undoc else "")
-libgcc = "libgcc-undoc.a" if undoc else "libgcc.a"
+# -l name of the compiler-support library (libgcc-undoc.a -> -lgcc-undoc).
+libgcc = "gcc-undoc" if undoc else "gcc"
 
 # The target selection must reach both the compiler and the (clang-driven)
 # assembler used for .S startup files. It must NOT be passed to ld.lld.
@@ -61,18 +62,20 @@ env.Append(
     ],
     CPPPATH=[sysroot_inc],
     CPPDEFINES=[("F_CPU", "$BOARD_F_CPU")],
-    LINKFLAGS=[
-        "--gc-sections",
-        "-Map=" + join("$BUILD_DIR", "${PROGNAME}.map"),
+    # The C runtime and compiler-support libraries. PlatformIO prepends
+    # `-T <ldscript>` (from board_build.ldscript) to LINKFLAGS, and the clang
+    # driver forwards it to the linker.
+    LIBPATH=[sysroot_lib],
+    LIBS=["c", libgcc],
+    LINKFLAGS=machine_flags
+    + [
+        "-nostdlib",  # we supply our own startup (crt0) and libraries
+        "-fuse-ld=lld",  # use the bundled ld.lld
+        "-Wl,--gc-sections",
+        "-Wl,-Map=" + join("$BUILD_DIR", "${PROGNAME}.map"),
     ],
 )
 
-# Link the C runtime and compiler-support libraries in a group (they reference
-# each other), by absolute path, after the project's own objects. PlatformIO
-# prepends `-T <ldscript>` (from board_build.ldscript) to LINKFLAGS for us.
-_libs = [join(sysroot_lib, "libc.a"), join(sysroot_lib, libgcc)]
-env.Replace(
-    LINKCOM='"$LINK" -o "$TARGET" $LINKFLAGS $SOURCES --start-group '
-    + " ".join('"%s"' % p for p in _libs)
-    + " --end-group"
-)
+# Group libc/libgcc so their mutual references resolve regardless of order.
+env.Prepend(_LIBFLAGS="-Wl,--start-group ")
+env.Append(_LIBFLAGS=" -Wl,--end-group")

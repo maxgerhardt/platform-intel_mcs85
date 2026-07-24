@@ -29,7 +29,10 @@ env.Replace(
     AS=join(tc_bin, "clang"),
     CC=join(tc_bin, "clang"),
     CXX=join(tc_bin, "clang"),
-    LINK=join(tc_bin, "ld.lld"),
+    # Link through the clang driver (it invokes ld.lld via -fuse-ld=lld). This
+    # keeps the standard PlatformIO link command; linker options are passed with
+    # the -Wl, prefix from the framework script.
+    LINK="$CC",
     OBJCOPY=join(tc_bin, "llvm-objcopy"),
     OBJDUMP=join(tc_bin, "llvm-objdump"),
     RANLIB=join(tc_bin, "llvm-ranlib"),
