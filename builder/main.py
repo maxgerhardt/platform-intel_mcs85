@@ -21,6 +21,19 @@ env = DefaultEnvironment()
 platform = env.PioPlatform()
 board = env.BoardConfig()
 
+
+def _mc6850_plugin():
+    """Absolute path to the MC6850 ACIA plugin for this host (.dll/.so/.dylib)."""
+    import platform as _plat
+
+    sysname = _plat.system()
+    fname = "mc6850_28c256.dll"
+    if sysname == "Darwin":
+        fname = "mc6850_28c256.dylib"
+    elif sysname != "Windows":
+        fname = "mc6850_28c256.so"
+    return join(platform.get_package_dir("tool-i8085-trace") or "", "plugins", fname)
+
 env.Replace(
     AR="llvm-ar",
     AS="clang",
@@ -147,7 +160,7 @@ def _run_in_simulator(source, target, env):
     max_steps = str(board.get("upload.sim_max_steps", 8000000))
 
     sim_pkg = platform.get_package_dir("tool-i8085-trace") or ""
-    plugin = join(sim_pkg, "plugins", "mc6850_28c256.dll")
+    plugin = _mc6850_plugin()
 
     cmd = [
         "i8085-trace", "-q", "-S", "-n", max_steps,
@@ -231,7 +244,7 @@ def _run_interactive_sim(target, source, env):
 
     elf = env.subst(join("$BUILD_DIR", "${PROGNAME}.elf"))
     sim_pkg = platform.get_package_dir("tool-i8085-trace") or ""
-    plugin = join(sim_pkg, "plugins", "mc6850_28c256.dll")
+    plugin = _mc6850_plugin()
     port = int(board.get("upload.sim_console_port", 5555))
 
     # pyserial provides the interactive terminal (miniterm).

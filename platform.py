@@ -20,26 +20,41 @@ from platformio import util
 
 class Intel_mcs85Platform(PlatformBase):
 
-    # Per-host prebuilt toolchain packages. Add linux/macOS branches here as
-    # they are published; the platform otherwise works unchanged.
-    toolchain_i8085 = {
-        "windows_amd64": "https://github.com/maxgerhardt/toolchain-llvm-i8085.git#windows_x64",
+    # Per-host prebuilt package branches. Each maps a PlatformIO systype to the
+    # git branch that carries that OS's binaries. Add hosts here as they are
+    # published; the platform otherwise works unchanged.
+    per_host_packages = {
+        "toolchain-llvm-i8085": {
+            "windows_amd64": "https://github.com/maxgerhardt/toolchain-llvm-i8085.git#windows_x64",
+        },
+        "tool-i8085-trace": {
+            "windows_amd64": "https://github.com/maxgerhardt/tool-i8085-trace.git#windows_x64",
+            "linux_x86_64": "https://github.com/maxgerhardt/tool-i8085-trace.git#linux_x64",
+            "darwin_x86_64": "https://github.com/maxgerhardt/tool-i8085-trace.git#darwin_x64",
+            "darwin_arm64": "https://github.com/maxgerhardt/tool-i8085-trace.git#darwin_arm64",
+        },
+        "tool-gdb-i8085": {
+            "windows_amd64": "https://github.com/maxgerhardt/gdb-i8085.git#windows_x64",
+        },
     }
 
     def is_embedded(self):
         return True
 
     def configure_default_packages(self, variables, targets):
-        # Point the toolchain package at the correct prebuilt for this host,
+        # Point each per-host package at the branch with this host's binaries,
         # unless the user has overridden it (e.g. a local `symlink://` package
         # via `platform_packages` for development).
         sys_type = util.get_systype()
-        url = Intel_mcs85Platform.toolchain_i8085.get(sys_type)
-        current = str(self.packages["toolchain-llvm-i8085"].get("version", ""))
-        is_local_override = current.startswith(
-            ("symlink://", "file://")
-        ) or os.path.isdir(current)
-        if url and not is_local_override:
-            self.packages["toolchain-llvm-i8085"]["version"] = url
+        for pkg_name, hosts in Intel_mcs85Platform.per_host_packages.items():
+            if pkg_name not in self.packages:
+                continue
+            url = hosts.get(sys_type)
+            current = str(self.packages[pkg_name].get("version", ""))
+            is_local_override = current.startswith(
+                ("symlink://", "file://")
+            ) or os.path.isdir(current)
+            if url and not is_local_override:
+                self.packages[pkg_name]["version"] = url
 
         return super().configure_default_packages(variables, targets)
