@@ -15,7 +15,8 @@
     "maximum_size": 24576,
     "protocol": "hexload",
     "protocols": [
-      "hexload"
+      "hexload",
+      "i8085-trace"
     ],
     "speed": 115200
   },

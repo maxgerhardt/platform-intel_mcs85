@@ -21,18 +21,11 @@ env = DefaultEnvironment()
 platform = env.PioPlatform()
 board = env.BoardConfig()
 
-# The toolchain package's bin/ directory is prepended to $PATH by PlatformIO
-# (pioplatform.py) when the package is installed, so the tools resolve by bare
-# name -- no need to join absolute paths here. Sysroot include/lib paths, which
-# are not on $PATH, are still referenced explicitly in frameworks/_bare.py.
 env.Replace(
     AR="llvm-ar",
     AS="clang",
     CC="clang",
     CXX="clang",
-    # Link through the clang driver (it invokes ld.lld via -fuse-ld=lld). This
-    # keeps the standard PlatformIO link command; linker options are passed with
-    # the -Wl, prefix from the framework script.
     LINK="$CC",
     OBJCOPY="llvm-objcopy",
     OBJDUMP="llvm-objdump",
@@ -110,10 +103,73 @@ target_size = env.AddPlatformTarget(
 )
 
 #
-# Target: Upload firmware via the HEX Loader (Hexload) module
+# Helpers for the i8085-trace simulator "upload"
+#
+def _elf_load_and_entry(elf_path):
+    """Return (load_address, entry_point) from an ELF32 little-endian file.
+
+    load = lowest physical address (LMA) of a loadable segment with content;
+    entry = e_entry. For this platform's linker scripts they coincide, but the
+    simulator wants both a load address for the flat .bin and an entry point.
+    """
+    import struct
+
+    with open(elf_path, "rb") as fh:
+        data = fh.read()
+    e_entry = struct.unpack_from("<I", data, 24)[0]
+    e_phoff = struct.unpack_from("<I", data, 28)[0]
+    e_phentsize = struct.unpack_from("<H", data, 42)[0]
+    e_phnum = struct.unpack_from("<H", data, 44)[0]
+    load = None
+    for i in range(e_phnum):
+        off = e_phoff + i * e_phentsize
+        p_type = struct.unpack_from("<I", data, off)[0]
+        p_paddr = struct.unpack_from("<I", data, off + 12)[0]
+        p_filesz = struct.unpack_from("<I", data, off + 16)[0]
+        if p_type == 1 and p_filesz > 0:  # PT_LOAD with content
+            load = p_paddr if load is None else min(load, p_paddr)
+    return (e_entry if load is None else load), e_entry
+
+
+def _run_in_simulator(source, target, env):
+    """Run the built flat binary in the i8085-trace simulator. The MC6850 ACIA
+    plugin (ports 0xDE/0xDF) streams the firmware's console-UART output live to
+    stdout (txlog=-)."""
+    import os
+    import subprocess
+    import sys
+
+    binimg = str(source[0])
+    elf = env.subst(join("$BUILD_DIR", "${PROGNAME}.elf"))
+    load, entry = _elf_load_and_entry(elf)
+    max_steps = str(board.get("upload.sim_max_steps", 8000000))
+
+    sim_pkg = platform.get_package_dir("tool-i8085-trace") or ""
+    plugin = join(sim_pkg, "plugins", "mc6850_28c256.dll")
+
+    cmd = [
+        "i8085-trace", "-q", "-S", "-n", max_steps,
+        "-l", "0x%X" % load, "-e", "0x%X" % entry,
+    ]
+    if os.path.isfile(plugin):
+        # Live-stream any console-UART (0xDE/0xDF) output to stdout.
+        cmd += ["--io-plugin=%s" % plugin, "--io-plugin-config=txlog=-"]
+    cmd += [binimg]
+
+    print(
+        "Running %s in i8085-trace (load 0x%X, entry 0x%X, max %s steps)..."
+        % (os.path.basename(binimg), load, entry, max_steps)
+    )
+    sys.stdout.flush()
+    return subprocess.call(cmd)
+
+
+#
+# Target: Upload firmware -- to hardware via Hexload, or into the simulator
 #
 upload_protocol = env.subst("$UPLOAD_PROTOCOL")
 upload_actions = []
+upload_source = target_hex
 
 if upload_protocol == "hexload":
     # The Hexload uploader needs pyserial + intelhex. Ensure they are available
@@ -145,6 +201,12 @@ if upload_protocol == "hexload":
         UPLOADCMD='"$PYTHONEXE" "$UPLOADER" $UPLOADERFLAGS "$SOURCE"',
     )
     upload_actions = [env.VerboseAction("$UPLOADCMD", "Uploading $SOURCE")]
+elif upload_protocol == "i8085-trace":
+    # Run the firmware in the i8085-trace simulator instead of flashing hardware.
+    upload_source = target_bin
+    upload_actions = [
+        env.VerboseAction(_run_in_simulator, "Running $SOURCE in i8085-trace")
+    ]
 elif upload_protocol == "custom":
     upload_actions = [env.VerboseAction("$UPLOADCMD", "Uploading $SOURCE")]
 else:
@@ -152,8 +214,7 @@ else:
 
     sys.stderr.write("Warning! Unknown upload protocol %s\n" % upload_protocol)
 
-# The Hexload uploader consumes the Intel HEX image.
-AlwaysBuild(env.Alias("upload", target_hex, upload_actions))
+AlwaysBuild(env.Alias("upload", upload_source, upload_actions))
 
 #
 # Default targets

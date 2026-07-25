@@ -38,6 +38,11 @@
       "type": "uploader",
       "optional": true,
       "version": "https://github.com/maxgerhardt/tool-hexload.git"
+    },
+    "tool-i8085-trace": {
+      "type": "uploader",
+      "optional": true,
+      "version": "https://github.com/maxgerhardt/tool-i8085-trace.git"
     }
   }
 }

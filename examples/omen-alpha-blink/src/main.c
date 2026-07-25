@@ -16,12 +16,17 @@
 /* --- 8085 I/O port access ------------------------------------------------- */
 static inline uint8_t IN(uint8_t port) {
     uint8_t result;
-    __asm__ volatile("in %1" : "=r"(result) : "i"(port));
+    /* The 8085 IN instruction loads the accumulator (A). Move A into the
+       compiler-chosen result register so we use the value read, not whatever
+       register the compiler assumed the result was in. */
+    __asm__ volatile("in %1\n\tMOV %0, A" : "=r"(result) : "i"(port));
     return result;
 }
 
 static inline void OUT(uint8_t port, uint8_t value) {
-    __asm__ volatile("out %1" : : "r"(value), "i"(port));
+    /* The 8085 OUT instruction transmits the accumulator (A). Move the value
+       into A first, so we output it rather than whatever A happened to hold. */
+    __asm__ volatile("MOV A, %0\n\tout %1" : : "r"(value), "i"(port));
 }
 
 /* --- 8255 PPI (parallel I/O chip) ---------------------------------------- */

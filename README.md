@@ -63,12 +63,32 @@ which streams the Intel HEX image to the board's resident Hexload monitor module
 over serial, then runs it and streams the board's UART output back to the
 console (Ctrl+C to stop).
 
+## Running in the simulator
+
+Set `upload_protocol = i8085-trace` and `pio run -t upload` runs the firmware in
+the [i8085-trace simulator](https://github.com/maxgerhardt/tool-i8085-trace)
+instead of flashing hardware. The MC6850 ACIA plugin (ports 0xDE/0xDF) streams
+the firmware's console-UART output live to the console. Because a typical
+firmware loops forever, cap the instruction budget with
+`board_upload.sim_max_steps` (default 8000000).
+
+```ini
+[env:omen_alpha_sim]
+platform = intel_mcs85
+board = omen_alpha
+framework = baremetal
+board_build.ldscript = src/i8085_eeprom.ld
+upload_protocol = i8085-trace
+board_upload.sim_max_steps = 4000000
+```
+
 ## Packages
 
 | Package | Role |
 | --- | --- |
 | [`toolchain-llvm-i8085`](https://github.com/maxgerhardt/toolchain-llvm-i8085) | LLVM/Clang 8085 toolchain + sysroot |
 | [`tool-hexload`](https://github.com/maxgerhardt/tool-hexload) | Hexload serial uploader |
+| [`tool-i8085-trace`](https://github.com/maxgerhardt/tool-i8085-trace) | i8085-trace simulator (sim upload + debug server) |
 
 ## License
 
