@@ -31,6 +31,8 @@ env.Replace(
     OBJDUMP="llvm-objdump",
     RANLIB="llvm-ranlib",
     SIZETOOL="llvm-size",
+    # Debugger: the custom i8085 GDB (tool-gdb-i8085), resolved on $PATH.
+    GDB="i8085-elf-gdb",
     ARFLAGS=["rc"],
     # llvm-size -A (sysv) prints one line per section: "<name> <size> <addr>".
     # Program (EEPROM/flash) = code + read-only + the .data load image.

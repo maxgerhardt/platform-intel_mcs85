@@ -43,6 +43,11 @@
       "type": "uploader",
       "optional": true,
       "version": "https://github.com/maxgerhardt/tool-i8085-trace.git"
+    },
+    "tool-gdb-i8085": {
+      "type": "debugger",
+      "optional": true,
+      "version": "https://github.com/maxgerhardt/gdb-i8085.git#windows_x64"
     }
   }
 }

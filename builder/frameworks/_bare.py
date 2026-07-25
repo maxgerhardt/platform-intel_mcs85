@@ -79,3 +79,9 @@ env.Append(
 # Group libc/libgcc so their mutual references resolve regardless of order.
 env.Prepend(_LIBFLAGS="-Wl,--start-group ")
 env.Append(_LIBFLAGS=" -Wl,--end-group")
+
+# Debug builds (`pio debug`): emit DWARF-4 debug info. The i8085 GDB reads
+# DWARF-4 line tables; the Clang default (DWARF-5) is not handled by gdb's
+# z80-derived line reader.
+if env.GetBuildType() == "debug":
+    env.Append(CCFLAGS=["-gdwarf-4"], ASFLAGS=["-gdwarf-4"])

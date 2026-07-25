@@ -10,6 +10,34 @@
     "baremetal"
   ],
   "name": "OMEN ALPHA (Intel 8085)",
+  "debug": {
+    "tools": {
+      "i8085-trace": {
+        "server": {
+          "package": "tool-i8085-trace",
+          "executable": "bin/i8085-trace.exe",
+          "arguments": [
+            "--gdb=$DEBUG_PORT",
+            "--io-plugin=$PACKAGE_DIR/plugins/mc6850_28c256.dll",
+            "--io-plugin-config=txlog=-",
+            "$PROG_PATH"
+          ]
+        },
+        "init_cmds": [
+          "define pio_reset_halt_target",
+          "end",
+          "define pio_reset_run_target",
+          "end",
+          "target remote $DEBUG_PORT",
+          "$LOAD_CMDS",
+          "$INIT_BREAK"
+        ],
+        "load_cmds": [],
+        "init_break": "tbreak main",
+        "default": true
+      }
+    }
+  },
   "upload": {
     "maximum_ram_size": 32768,
     "maximum_size": 24576,
