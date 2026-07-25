@@ -218,6 +218,58 @@ else:
 
 AlwaysBuild(env.Alias("upload", upload_source, upload_actions))
 
+
+#
+# Target: Interactive simulator ("pio run -t sim") -- run the firmware in
+# i8085-trace with the console ACIA bridged to a live terminal.
+#
+def _run_interactive_sim(target, source, env):
+    import os
+    import subprocess
+    import sys
+    import time
+
+    elf = env.subst(join("$BUILD_DIR", "${PROGNAME}.elf"))
+    sim_pkg = platform.get_package_dir("tool-i8085-trace") or ""
+    plugin = join(sim_pkg, "plugins", "mc6850_28c256.dll")
+    port = int(board.get("upload.sim_console_port", 5555))
+
+    # pyserial provides the interactive terminal (miniterm).
+    try:
+        import serial  # noqa: F401
+    except ImportError:
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "pyserial", "--no-input"]
+        )
+
+    cmd = ["i8085-trace", "-q", "-S", "-n", "0"]  # -n 0: run unbounded
+    if os.path.isfile(plugin):
+        cmd += ["--io-plugin=%s" % plugin, "--io-plugin-config=tcp=%d" % port]
+    cmd += [elf]
+
+    print("Starting i8085-trace (console ACIA bridged to localhost:%d)..." % port)
+    sim = subprocess.Popen(cmd)
+    time.sleep(1.0)
+    print("--- terminal (Ctrl-] to exit and stop the simulator) ---")
+    try:
+        subprocess.call(
+            [
+                sys.executable, "-m", "serial.tools.miniterm",
+                "socket://localhost:%d" % port, "115200",
+            ]
+        )
+    finally:
+        sim.terminate()
+
+
+env.AddCustomTarget(
+    name="sim",
+    dependencies=target_elf,
+    actions=[_run_interactive_sim],
+    title="Interactive Simulator",
+    description="Run in i8085-trace with an interactive UART terminal",
+)
+
 #
 # Default targets
 #

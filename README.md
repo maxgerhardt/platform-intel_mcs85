@@ -31,6 +31,9 @@ framework = baremetal
 * [`examples/omen-alpha-blink-asm`](examples/omen-alpha-blink-asm) — the same
   LED blink written in pure 8085 assembly (`src/blink.S`), with no C runtime:
   the source is its own startup. Built as a single EEPROM+RAM image.
+* [`examples/omen-alpha-uart-console`](examples/omen-alpha-uart-console) — an
+  interactive UART console (`ping`→`pong`, `blink N`→blinks the LEDs). Run it in
+  the simulator with an attached terminal via `pio run -t sim`.
 
 ## Boards
 
@@ -71,6 +74,26 @@ instead of flashing hardware. The MC6850 ACIA plugin (ports 0xDE/0xDF) streams
 the firmware's console-UART output live to the console. Because a typical
 firmware loops forever, cap the instruction budget with
 `board_upload.sim_max_steps` (default 8000000).
+
+### Interactive terminal (`pio run -t sim`)
+
+For firmware that reads input (see the `omen-alpha-uart-console` example),
+`pio run -t sim` runs the image in the simulator with the console ACIA bridged
+to a live terminal — type into it and the firmware sees it as UART RX. It builds,
+starts the simulator, opens the terminal, and stops the simulator when you exit
+(Ctrl-]).
+
+## Debugging (`pio debug`)
+
+Source-level debugging works through the simulator and a custom GDB with real
+Intel 8085 support ([`gdb-i8085`](https://github.com/maxgerhardt/gdb-i8085) —
+stepping via DWARF CFI, all undocumented opcodes). The simulator provides the
+GDB remote server; `pio debug` builds with `-gdwarf-4`, launches both, and stops
+at `main`:
+
+```sh
+pio debug            # or: pio debug --interface=gdb -- -x .pioinit
+```
 
 ```ini
 [env:omen_alpha_sim]
