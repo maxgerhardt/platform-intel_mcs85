@@ -46,7 +46,7 @@
     },
     "tool-gdb-i8085": {
       "type": "debugger",
-      "optional": true,
+      "optional": false,
       "version": "https://github.com/maxgerhardt/gdb-i8085.git#windows_x64"
     }
   }
