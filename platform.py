@@ -30,7 +30,6 @@ class Intel_mcs85Platform(PlatformBase):
         "tool-i8085-trace": {
             "windows_amd64": "https://github.com/maxgerhardt/tool-i8085-trace.git#windows_x64",
             "linux_x86_64": "https://github.com/maxgerhardt/tool-i8085-trace.git#linux_x64",
-            "darwin_x86_64": "https://github.com/maxgerhardt/tool-i8085-trace.git#darwin_x64",
             "darwin_arm64": "https://github.com/maxgerhardt/tool-i8085-trace.git#darwin_arm64",
         },
         "tool-gdb-i8085": {
