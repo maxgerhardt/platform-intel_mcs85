@@ -4,13 +4,12 @@ on: [push, pull_request]
 
 jobs:
   build:
-    # Windows only: the LLVM 8085 toolchain package is currently built for
-    # Windows (windows_amd64) only. Add other OSes here once their toolchain
-    # packages are published.
+    # The LLVM 8085 toolchain + gdb + trace packages are now published per-host
+    # for Windows, Linux (x86_64) and macOS (arm64), so exercise all three.
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [windows-latest, ubuntu-latest, macos-14]
         example:
           - "examples/omen-alpha-blink"
           - "examples/omen-alpha-blink-asm"
