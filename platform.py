@@ -61,3 +61,21 @@ class Intel_mcs85Platform(PlatformBase):
                 self.packages[pkg_name]["version"] = url
 
         return super().configure_default_packages(variables, targets)
+
+    def configure_debug_session(self, debug_config):
+        # The i8085-trace GDB stub is driven over a plain remote connection.
+        # The IDE's "pause" (-exec-interrupt) only reaches a *running* target
+        # when GDB is in async mode, and `set mi-async on` MUST be issued
+        # before `target remote` to take effect. This is a property of the
+        # debug tool (GDB + i8085-trace), not of any individual board, so it
+        # is injected here rather than duplicated in every board's debug
+        # config. Prepend it to the tool's init commands.
+        if debug_config.tool_name != "i8085-trace":
+            return
+        init_cmds = list(debug_config.init_cmds)
+        if not init_cmds:
+            init_cmds = debug_config.get_init_script("gdb").split("\n")
+        if "set mi-async on" not in init_cmds:
+            debug_config.tool_settings["init_cmds"] = [
+                "set mi-async on"
+            ] + init_cmds
