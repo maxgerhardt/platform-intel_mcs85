@@ -26,6 +26,8 @@ class Intel_mcs85Platform(PlatformBase):
     per_host_packages = {
         "toolchain-llvm-i8085": {
             "windows_amd64": "https://github.com/maxgerhardt/toolchain-llvm-i8085.git#windows_x64",
+            "darwin_arm64": "https://github.com/maxgerhardt/toolchain-llvm-i8085.git#darwin_arm64",
+            # linux_x64 added once its CI publish is confirmed (large clang build)
         },
         "tool-i8085-trace": {
             "windows_amd64": "https://github.com/maxgerhardt/tool-i8085-trace.git#windows_x64",
@@ -34,6 +36,8 @@ class Intel_mcs85Platform(PlatformBase):
         },
         "tool-gdb-i8085": {
             "windows_amd64": "https://github.com/maxgerhardt/gdb-i8085.git#windows_x64",
+            "linux_x86_64": "https://github.com/maxgerhardt/gdb-i8085.git#linux_x64",
+            "darwin_arm64": "https://github.com/maxgerhardt/gdb-i8085.git#darwin_arm64",
         },
     }
 
