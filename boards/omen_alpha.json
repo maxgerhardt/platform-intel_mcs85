@@ -19,7 +19,7 @@
           "arguments": [
             "--gdb=$DEBUG_PORT",
             "--io-plugin=$PACKAGE_DIR/plugins/mc6850_28c256.dll",
-            "--io-plugin-config=txlog=-;tcp=5555",
+            "--io-plugin-config=tcp=5555",
             "$PROG_PATH"
           ]
         },
